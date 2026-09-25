@@ -1,0 +1,35 @@
+# ============================================================
+# CELDA 7: Cadena RAG (recuperación + generación)
+# ============================================================
+retriever = vector_db.as_retriever(search_kwargs={"k": 3})
+
+PLANTILLA_RAG = """Eres un asistente de liquidación de siniestros de salud de Zurich.
+Responde SOLO con la información del contexto. Si el contexto no alcanza, dilo.
+
+Contexto:
+{contexto}
+
+Pregunta: {pregunta}
+
+Responde en español, en máximo 4 líneas, indicando una decisión
+(APROBAR / RECHAZAR / REQUIERE_REVISION_MANUAL) y su motivo."""
+
+def consultar(query):
+    docs = retriever.invoke(query)
+    contexto = "\n".join(f"- {d.page_content}" for d in docs)
+    respuesta = invocar_llm(PLANTILLA_RAG.format(contexto=contexto, pregunta=query))
+    return {
+        "respuesta": respuesta,
+        "contexto": contexto,
+        "fuentes": [d.metadata["id"] for d in docs],
+    }
+
+# Prueba
+print("=" * 60)
+print("PRUEBA RAG: Cobertura de consulta cardiológica")
+print("=" * 60)
+q1 = "¿Está cubierta una consulta cardiológica de $85.000?"
+r1 = consultar(q1)
+print(f"❓ Pregunta: {q1}")
+print(f"\n🤖 Respuesta:\n{r1['respuesta']}")
+print(f"\n📚 Fuentes recuperadas ({len(r1['fuentes'])}): {', '.join(r1['fuentes'])}")
