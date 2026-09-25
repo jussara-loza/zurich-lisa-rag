@@ -1,0 +1,40 @@
+# ============================================================
+# CELDA 8: Prompt Chain-of-Thought + RAG
+# ============================================================
+def formato_clp(monto):
+    return f"${monto:,}".replace(",", ".")
+
+def decision_con_cot(prestacion, monto, fecha):
+    # Recuperar contexto relevante (k=4 para incluir reglas de negocio)
+    docs = vector_db.similarity_search(f"{prestacion} cobertura límite monto", k=4)
+    contexto = "\n".join(f"- [{d.metadata['id']}] {d.page_content}" for d in docs)
+
+    prompt = f"""Eres un experto en liquidación de siniestros de salud.
+
+Contexto de la póliza (recuperado de la base de conocimiento):
+{contexto}
+
+Datos del siniestro:
+- Prestación: {prestacion}
+- Monto: {formato_clp(monto)}
+- Fecha: {fecha}
+
+Razona paso a paso, citando el ID del documento que usas:
+1. ¿La prestación está cubierta por la póliza?
+2. ¿El monto está dentro de los límites?
+3. ¿Existe período de carencia aplicable?
+4. ¿Hay algún motivo de exclusión?
+
+Termina con este formato exacto:
+Decisión final: [APROBAR / RECHAZAR / REQUIERE_REVISION_MANUAL]
+Justificación: (una o dos líneas)"""
+
+    return invocar_llm(prompt), contexto
+
+# Ejecutar
+print("=" * 60)
+print("DECISIÓN CON CHAIN-OF-THOUGHT + RAG")
+print("=" * 60)
+decision, contexto_cot = decision_con_cot("Consulta Cardiología", 85000, "2024-03-15")
+print(f"\n📋 Contexto recuperado (RAG):\n{contexto_cot}")
+print(f"\n🤖 Decisión con CoT:\n{decision}")
