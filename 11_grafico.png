@@ -1,0 +1,39 @@
+# ============================================================
+# CELDA 11: Visualización de resultados
+# ============================================================
+import matplotlib.pyplot as plt
+
+metricas = ["fidelidad", "relevancia", "correctitud"]
+nombres = ["Fidelidad", "Relevancia", "Correctitud"]
+colores = ["#1A3A5C", "#00A86B", "#E8A33D"]
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Gráfico 1: Barras comparativas por consulta
+x = list(range(1, len(df) + 1))
+width = 0.25
+for j, (m, nombre, color) in enumerate(zip(metricas, nombres, colores)):
+    axes[0].bar([i + (j - 1) * width for i in x], df[m], width, label=nombre, color=color)
+axes[0].set_xlabel("Consulta")
+axes[0].set_ylabel("Puntuación (1-10)")
+axes[0].set_title("Métricas por Consulta")
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([f"C{i}" for i in x])
+axes[0].legend()
+axes[0].grid(axis="y", alpha=0.3)
+axes[0].set_ylim(0, 11)
+
+# Gráfico 2: Promedios
+promedios = [df[m].mean() for m in metricas]
+axes[1].bar(nombres, promedios, color=colores)
+axes[1].set_ylabel("Puntuación promedio")
+axes[1].set_title(f"Promedios Generales ({MODELO_LLM})")
+axes[1].set_ylim(0, 11)
+for i, v in enumerate(promedios):
+    axes[1].text(i, v + 0.2, f"{v:.2f}", ha="center", fontweight="bold")
+
+plt.tight_layout()
+plt.savefig("grafico_evaluacion.png", dpi=150, bbox_inches="tight")
+plt.show()
+
+print("✅ Gráfico guardado: grafico_evaluacion.png")
