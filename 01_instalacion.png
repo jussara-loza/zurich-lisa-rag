@@ -12,3 +12,4 @@ for paquete in ["langchain-core", "langchain-google-genai", "langchain-community
         print(f"   {paquete}: ✗ NO INSTALADO")
 
 print("✅ Dependencias instaladas correctamente")
+print(" ")
