@@ -1,0 +1,25 @@
+# ============================================================
+# CELDA 4: Corpus documental simulado (base de conocimiento)
+# ============================================================
+documentos = [
+    {"id": "POL-01", "tipo": "poliza",
+     "texto": "Póliza de salud Zurich Plan Premium. Cobertura de consultas médicas de especialistas hasta $100.000 por evento. Carencia de 30 días desde la contratación. No cubre tratamientos estéticos ni experimentales."},
+    {"id": "POL-02", "tipo": "poliza",
+     "texto": "Póliza de salud Zurich Plan Premium. Cobertura de exámenes de laboratorio hasta $50.000 por evento. Requiere orden médica vigente. Carencia de 15 días."},
+    {"id": "POL-03", "tipo": "poliza",
+     "texto": "Póliza de salud Zurich Plan Premium. Cobertura de hospitalizaciones hasta $500.000 por evento. Sujeto a deducible de $50.000. Requiere autorización previa para procedimientos programados."},
+    {"id": "REG-01", "tipo": "regla",
+     "texto": "Regla de negocio: Toda factura médica debe incluir RUT del prestador, fecha de emisión y detalle de prestación. Facturas sin RUT son rechazadas automáticamente."},
+    {"id": "REG-02", "tipo": "regla",
+     "texto": "Regla de negocio: Si el monto solicitado excede el límite de cobertura en más del 20%, el caso se deriva a revisión manual."},
+    {"id": "REG-03", "tipo": "regla",
+     "texto": "Regla de negocio: Siniestros presentados después de 60 días desde la fecha del servicio requieren justificación escrita del asegurado."},
+    {"id": "FRA-01", "tipo": "fraude",
+     "texto": "Patrón de fraude: Múltiples siniestros con montos idénticos presentados en menos de 7 días por el mismo asegurado deben marcarse como sospechosos."},
+    {"id": "FRA-02", "tipo": "fraude",
+     "texto": "Patrón de fraude: Facturas con RUT de prestador no registrado en el directorio oficial deben marcarse para verificación."},
+]
+
+print(f"✅ Corpus cargado: {len(documentos)} documentos")
+for d in documentos:
+    print(f"[{d['id']}] ({d['tipo']}) {d['texto'][:80]}...")
