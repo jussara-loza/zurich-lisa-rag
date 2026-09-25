@@ -1,0 +1,27 @@
+# ============================================================
+# CELDA 5: Chunking con RecursiveCharacterTextSplitter
+# ============================================================
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=300,
+    chunk_overlap=50,
+    separators=["\n\n", "\n", ". ", " ", ""]
+)
+
+# Cada documento se divide por separado y conserva sus metadatos (id y tipo)
+docs_base = [
+    Document(page_content=d["texto"], metadata={"id": d["id"], "tipo": d["tipo"]})
+    for d in documentos
+]
+chunks = splitter.split_documents(docs_base)
+
+total_caracteres = sum(len(d["texto"]) for d in documentos)
+print("✅ Chunking completado")
+print(f"   Texto original: {total_caracteres} caracteres")
+print(f"   Chunks generados: {len(chunks)}")
+print(f"   Tamaño promedio: {sum(len(c.page_content) for c in chunks) // len(chunks)} caracteres\n")
+
+for i, c in enumerate(chunks, 1):
+    print(f"Chunk {i} [{c.metadata['id']}] ({len(c.page_content)} car.): {c.page_content[:70]}...")
