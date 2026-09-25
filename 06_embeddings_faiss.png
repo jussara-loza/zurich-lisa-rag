@@ -1,0 +1,22 @@
+# ============================================================
+# CELDA 6: Embeddings + FAISS Vector Store con Gemini
+# ============================================================
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.vectorstores import FAISS
+
+embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+
+vector_db = FAISS.from_documents(chunks, embeddings)
+
+print("✅ Base vectorial FAISS creada")
+print(f"   Chunks indexados: {vector_db.index.ntotal}")
+print(f"   Dimensión de los vectores: {vector_db.index.d}")
+print("   Modelo de embeddings: gemini-embedding-001")
+
+# Prueba de búsqueda
+query_test = "¿Cuál es la cobertura de consultas médicas?"
+resultados_busqueda = vector_db.similarity_search_with_score(query_test, k=2)
+print(f"\n🔍 Prueba de búsqueda: '{query_test}'")
+for i, (doc, score) in enumerate(resultados_busqueda, 1):
+    print(f"\nResultado {i} [{doc.metadata['id']}] (distancia: {score:.4f}):")
+    print(f"   {doc.page_content[:120]}...")
