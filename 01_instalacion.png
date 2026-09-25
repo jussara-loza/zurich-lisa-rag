@@ -1,0 +1,14 @@
+# ============================================================
+# CELDA 1: Instalación de dependencias para Gemini
+# ============================================================
+!pip install -q -U langchain-core langchain-google-genai langchain-community langchain-text-splitters faiss-cpu pandas numpy matplotlib
+
+import importlib.metadata as md
+for paquete in ["langchain-core", "langchain-google-genai", "langchain-community",
+                "langchain-text-splitters", "faiss-cpu"]:
+    try:
+        print(f"   {paquete}: {md.version(paquete)}")
+    except md.PackageNotFoundError:
+        print(f"   {paquete}: ✗ NO INSTALADO")
+
+print("✅ Dependencias instaladas correctamente")
