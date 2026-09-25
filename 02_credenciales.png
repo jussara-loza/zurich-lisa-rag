@@ -1,0 +1,19 @@
+# ============================================================
+# CELDA 2: Configuración de credenciales desde Secrets de Colab
+# ============================================================
+from google.colab import userdata
+import os
+
+try:
+    api_key = userdata.get("GEMINI_API_KEY")
+except Exception as e:
+    api_key = None
+    print(f"❌ No se pudo leer el secret GEMINI_API_KEY: {e}")
+    print("   Revisa: nombre exacto 'GEMINI_API_KEY' y toggle 'Acceso al notebook' activado")
+
+if api_key:
+    os.environ["GOOGLE_API_KEY"] = api_key
+    print("✅ Credenciales cargadas desde Secrets de Colab")
+    print(f"   API Key: ✓ Configurada ({api_key[:6]}...{api_key[-4:]})")
+else:
+    print("   API Key: ✗ No configurada")
