@@ -1,0 +1,9 @@
+# ============================================================
+# CELDA 12: Descargar archivos para el repositorio
+# ============================================================
+from google.colab import files
+
+print("📥 Descargando archivos generados...")
+files.download("resultados_evaluacion.csv")
+files.download("grafico_evaluacion.png")
+print("✅ Archivos descargados")
