@@ -1,0 +1,47 @@
+# ============================================================
+# CELDA 9: Evaluación con métricas de calidad (LLM como juez)
+# ============================================================
+import re
+
+def extraer_puntaje(texto):
+    """Obtiene el primer número del texto y lo limita al rango 1-10."""
+    m = re.search(r"\d+(?:[.,]\d+)?", texto)
+    if not m:
+        return 5.0
+    valor = float(m.group().replace(",", "."))
+    return max(1.0, min(10.0, valor))
+
+def evaluar_fidelidad(query, contexto, respuesta):
+    prompt = f"""Evalúa si la respuesta se basa SOLO en el contexto, sin inventar datos.
+
+Consulta: {query}
+Contexto: {contexto}
+Respuesta: {respuesta}
+
+Responde SOLO con un número entero del 1 al 10, sin texto adicional."""
+    return extraer_puntaje(invocar_llm(prompt))
+
+def evaluar_relevancia(query, respuesta):
+    prompt = f"""Evalúa qué tan bien la respuesta contesta directamente la consulta.
+
+Consulta: {query}
+Respuesta: {respuesta}
+
+Responde SOLO con un número entero del 1 al 10, sin texto adicional."""
+    return extraer_puntaje(invocar_llm(prompt))
+
+def evaluar_correctitud(query, respuesta, ground_truth):
+    prompt = f"""Compara la respuesta del sistema con la respuesta esperada.
+Evalúa si la decisión y el motivo coinciden.
+
+Consulta: {query}
+Respuesta esperada: {ground_truth}
+Respuesta del sistema: {respuesta}
+
+Responde SOLO con un número entero del 1 al 10, sin texto adicional."""
+    return extraer_puntaje(invocar_llm(prompt))
+
+print("✅ Funciones de evaluación definidas")
+print("   - Fidelidad: ¿la respuesta se basa en el contexto recuperado?")
+print("   - Relevancia: ¿la respuesta contesta la pregunta?")
+print("   - Correctitud: ¿coincide con la respuesta esperada (ground truth)?")
