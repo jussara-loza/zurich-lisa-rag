@@ -1,0 +1,8 @@
+langchain-core
+langchain-google-genai
+langchain-community
+langchain-text-splitters
+faiss-cpu
+pandas
+numpy
+matplotlib
