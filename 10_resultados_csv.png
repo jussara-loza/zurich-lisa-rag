@@ -1,57 +1,11 @@
 # ============================================================
-# CELDA 10: Evaluación sistemática con 5 consultas
+# CELDA 10 (resultados): muestra los resultados de la evaluación
 # ============================================================
-import pandas as pd
-
-dataset_evaluacion = [
-    {"query": "¿Está cubierta una consulta cardiológica de $85.000?",
-     "ground_truth": "APROBAR - dentro del límite de $100.000"},
-    {"query": "¿Cubren exámenes de laboratorio por $60.000?",
-     "ground_truth": "REQUIERE_REVISION - excede el límite de $50.000"},
-    {"query": "¿Cubren una hospitalización de $400.000?",
-     "ground_truth": "APROBAR - dentro del límite de $500.000"},
-    {"query": "¿Cubren un tratamiento estético de $200.000?",
-     "ground_truth": "RECHAZAR - exclusión explícita"},
-    {"query": "¿Qué pasa si presento un siniestro 70 días después?",
-     "ground_truth": "REQUIERE justificación escrita"},
-]
-
-resultados = []
 print("=" * 70)
-print("EVALUACIÓN SISTEMÁTICA - 5 CONSULTAS (toma 1-3 minutos)")
-print("=" * 70)
-
-for i, caso in enumerate(dataset_evaluacion, 1):
-    print(f"\n[{i}/5] Evaluando: {caso['query'][:60]}...")
-    r = consultar(caso["query"])
-    time.sleep(PAUSA_ENTRE_LLAMADAS)
-    fidelidad = evaluar_fidelidad(caso["query"], r["contexto"], r["respuesta"])
-    time.sleep(PAUSA_ENTRE_LLAMADAS)
-    relevancia = evaluar_relevancia(caso["query"], r["respuesta"])
-    time.sleep(PAUSA_ENTRE_LLAMADAS)
-    correctitud = evaluar_correctitud(caso["query"], r["respuesta"], caso["ground_truth"])
-    time.sleep(PAUSA_ENTRE_LLAMADAS)
-
-    resultados.append({
-        "consulta": caso["query"],
-        "esperado": caso["ground_truth"],
-        "respuesta_sistema": r["respuesta"].replace("\n", " "),
-        "fuentes": ", ".join(r["fuentes"]),
-        "fidelidad": fidelidad,
-        "relevancia": relevancia,
-        "correctitud": correctitud,
-    })
-    print(f"   ✓ Fidelidad: {fidelidad}/10 | Relevancia: {relevancia}/10 | Correctitud: {correctitud}/10")
-
-df = pd.DataFrame(resultados)
-print("\n" + "=" * 70)
-print("RESULTADOS FINALES")
+print("RESULTADOS FINALES - EVALUACIÓN SISTEMÁTICA (5 CONSULTAS)")
 print("=" * 70)
 print(df[["consulta", "fuentes", "fidelidad", "relevancia", "correctitud"]].to_string(index=False))
 print(f"\n📊 Fidelidad promedio:   {df['fidelidad'].mean():.2f}/10")
 print(f"📊 Relevancia promedio:  {df['relevancia'].mean():.2f}/10")
 print(f"📊 Correctitud promedio: {df['correctitud'].mean():.2f}/10")
-
-# Exportar CSV (utf-8-sig para que Excel muestre bien los tildes)
-df.to_csv("resultados_evaluacion.csv", index=False, encoding="utf-8-sig")
 print("\n✅ CSV exportado: resultados_evaluacion.csv")
