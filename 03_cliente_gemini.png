@@ -1,0 +1,107 @@
+# ============================================================
+# CELDA 3: Inicialización del cliente Gemini (detección automática de modelo)
+# ============================================================
+import os
+import time
+from google import genai
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+PAUSA_ENTRE_LLAMADAS = 4  # segundos, para no superar el límite gratuito
+
+# Orden de preferencia (se usan solo los que tu API key tenga disponibles)
+PREFERIDOS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-latest",
+              "gemini-flash-lite-latest", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
+EXCLUIR = ["tts", "image", "live", "audio", "embedding", "thinking", "exp"]
+
+# --- 1. Verificar API key ---
+api_key = os.environ.get("GOOGLE_API_KEY")
+if not api_key:
+    raise RuntimeError("❌ No hay API key cargada. Ejecuta primero la CELDA 2.")
+
+# --- 2. Consultar qué modelos tiene disponibles tu API key ---
+cliente = genai.Client(api_key=api_key)
+disponibles = []
+for m in cliente.models.list():
+    acciones = getattr(m, "supported_actions", None) or []
+    nombre = m.name.replace("models/", "")
+    if "generateContent" in acciones and "gemini" in nombre and not any(x in nombre for x in EXCLUIR):
+        disponibles.append(nombre)
+
+print(f"📋 Modelos de texto disponibles para tu API key: {len(disponibles)}")
+for n in disponibles[:15]:
+    print(f"   - {n}")
+
+# Primero los preferidos (en orden), luego cualquier otro 'flash' disponible
+candidatos = [p for p in PREFERIDOS if p in disponibles]
+candidatos += [n for n in disponibles if "flash" in n and n not in candidatos]
+if not candidatos:
+    candidatos = disponibles[:3]
+
+# --- 3. Funciones de apoyo ---
+def texto_de(respuesta):
+    """Extrae el texto de la respuesta de Gemini (puede venir como str o como lista)."""
+    contenido = respuesta.content
+    if isinstance(contenido, str):
+        return contenido
+    partes = []
+    for p in contenido:
+        if isinstance(p, str):
+            partes.append(p)
+        elif isinstance(p, dict) and p.get("type") == "text":
+            partes.append(p.get("text", ""))
+    return "".join(partes)
+
+def es_limite_de_uso(error):
+    msg = str(error)
+    return any(x in msg for x in ["429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE"]) or "quota" in msg.lower()
+
+def invocar_llm(prompt, reintentos=5, espera=15):
+    """Llama al LLM con reintentos automáticos si se alcanza el límite de uso."""
+    if llm is None:
+        raise RuntimeError("❌ El LLM no está inicializado. Vuelve a ejecutar la CELDA 3.")
+    for intento in range(1, reintentos + 1):
+        try:
+            return texto_de(llm.invoke(prompt)).strip()
+        except Exception as e:
+            if es_limite_de_uso(e):
+                print(f"   ⏳ Límite de uso alcanzado, esperando {espera}s (intento {intento}/{reintentos})")
+                time.sleep(espera)
+                espera *= 2
+            else:
+                raise
+    raise RuntimeError("❌ Gemini no respondió tras varios reintentos. Espera unos minutos y reintenta.")
+
+# --- 4. Probar modelos hasta que uno responda ---
+llm = None
+MODELO_LLM = None
+errores = {}
+
+for modelo in candidatos:
+    candidato = ChatGoogleGenerativeAI(model=modelo, temperature=0.1, max_retries=1)
+    for intento in range(1, 3):
+        try:
+            prueba = texto_de(candidato.invoke("Responde solo: OK")).strip()
+            llm, MODELO_LLM = candidato, modelo
+            break
+        except Exception as e:
+            errores[modelo] = str(e)[:250]
+            if es_limite_de_uso(e) and intento == 1:
+                print(f"   ⏳ {modelo}: límite de uso, reintentando en 20s...")
+                time.sleep(20)
+            else:
+                break
+    if llm is not None:
+        break
+    print(f"⚠️ {modelo} no respondió: {errores[modelo]}")
+
+if llm is None:
+    raise RuntimeError(
+        "❌ Ningún modelo respondió.\n"
+        "   - Si el error dice 'quota' o 'limit: 0': ese modelo no tiene cuota gratis para tu cuenta\n"
+        "     o la agotaste por hoy. Espera unos minutos o crea una API key nueva en AI Studio.\n"
+        "   - Si dice 'API key not valid': revisa el secret GEMINI_API_KEY (CELDA 2)."
+    )
+
+print("\n✅ Cliente Gemini inicializado y conectado")
+print(f"   Modelo: {MODELO_LLM}")
+print(f"   Respuesta de prueba: {prueba}")
